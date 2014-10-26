@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>three.js webgl - io - scene loader [blender]</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style>
+            body {
+                background:#000;
+                color:#fff;
+                padding:0;
+                margin:0;
+                overflow:hidden;
+                font-family:georgia;
+                text-align:center;
+            }
+
+            #info {
+                position: absolute;
+                top: 0px; width: 100%;
+                padding: 5px;
+                font-family: Monospace;
+                font-size: 13px;
+                text-align: center;
+                z-index:100;
+            }
+
+            #progress {
+                color:red;
+                top:7em;
+                width: 100%;
+                font-size:3em;
+                font-variant:small-caps;
+                font-weight:bold;
+                position:absolute;
+                z-index:100;
+                text-align: center;
+                text-shadow: #000 0px 0px 10px;
+                display:none;
+            }
+
+            #start {
+                color:#fff;
+                text-shadow: #000 0px 0px 2px;
+                padding:0.1em 0.3em;
+                width:3em;
+                text-align: center;
+                display:none;
+            }
+
+            .shadow {
+                -moz-box-shadow: 0px 0px 5px #000;
+                -webkit-box-shadow: 0px 0px 5px #000;
+                box-shadow: 0px 0px 5px #000;
+            }
+
+            #progressbar {
+                text-align: center;
+                background: white;
+                width: 250px;
+                height: 10px;
+            }
+
+            #bar {
+                background:#d00;
+                width:50px;
+                height:10px;
+            }
+
+            .enabled {
+                color: lime!important;
+                cursor:pointer;
+            }
+
+            .enabled:hover {
+                text-shadow: #0f0 0px 0px 5px !important;
+            }
+
+            .disabled {
+                background:gray;
+                cursor:default;
+            }
+
+            a { color:red }
+            canvas { pointer-events:none; z-index:10; }
+
+            #scene_explorer {
+                background:transparent;
+                color:#fff;
+                width:200px;
+                position:absolute;
+                text-align:left;
+                top:0px;
+                z-index:200;
+                overflow:auto;
+            }
+
+            #section_exp {
+                background:rgba(0,0,50,0.5);
+                padding:0.5em 0;
+                display:none;
+            }
+
+            #scene_explorer h3 {
+                font-size:1em;
+                padding:0;
+                margin:0;
+                color:orange;
+            }
+
+            #scene_explorer a {
+                color:#555;
+                font-weight:bold;
+                text-decoration:none;
+                font-size:1.2em;
+                font-family:Monospace;
+            }
+            #scene_explorer a:hover {
+                background:#555;
+                color:rgba(0,0,50,1);
+            }
+
+            .part {
+                display:none;
+                padding:0 0 0.5em 2em;
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+            #blocker {
+
+                position: absolute;
+                display: none;
+
+                width: 100%;
+                height: 100%;
+                z-index:99;
+
+                background-color: rgba(0,0,0,0.5);
+
+            }
+
+            #instructions {
+
+                width: 100%;
+                height: 100%;
+
+                display: -webkit-box;
+                display: -moz-box;
+                display: box;
+
+                -webkit-box-orient: horizontal;
+                -moz-box-orient: horizontal;
+                box-orient: horizontal;
+
+                -webkit-box-pack: center;
+                -moz-box-pack: center;
+                box-pack: center;
+
+                -webkit-box-align: center;
+                -moz-box-align: center;
+                box-align: center;
+
+                color: #ffffff;
+                text-align: center;
+
+                cursor: pointer;
+
+            }
+
+
+
+
+
+
+
+
+
+
+        </style>
+    </head>
+
+    <body>
+        <div id="info"></div>
+        <div id="scene_explorer">
+            <a id="plus_exp" href="#">[+]</a>
+            <div id="section_exp"></div>
+        </div>
+
+        <div id="progress">
+            <span id="message">Loading ...</span>
+
+            <center>
+                <div id="progressbar" class="shadow"><div id="bar" class="shadow"></div></div>
+                <div id="start" class="disabled">Start</div>
+            </center>
+        </div>
+
+
+
+
+        <div id="blocker">
+
+            <div id="instructions">
+                <span style="font-size:40px">Click to play</span>
+                <br />
+                (W,A,S,D = Move, SPACE = Jump, MOUSE = Look, CLICK+HOLD = Shoot)
+            </div>
+
+        </div>
+
+
+        <!-- script src="https://raw.github.com/mrdoob/three.js/master/build/three.js"></script -->
+		<script src="js/three.js"></script>
+        
+        <script src="js/detector.js"></script>
+        <script src="js/stats.min.js"></script>
+        <script src="js/PointerLockControls.js"></script>
+        <script src="js/cannon.js"></script>
+
+        <script src="js/three.min.js"></script>
+		<script src="js/loaders/DDSLoader.js"></script>
+		<script src="js/loaders/MTLLoader.js"></script>
+		<script src="js/loaders/OBJMTLLoader.js"></script>
+		
+		<script src="js/globals.js"></script>
+		<script src="js/materials.js"></script>
+		<script src="js/importer.js"></script>
+		
+		<script src="js/three.js"></script>
+		<script src="js/load_init_scene.js"></script>
+		<script src="js/loading_scene.js"></script>
+		
+		 
+		<script src="fonts/helvetiker_regular.typeface.js"></script>
+		<script src="js/initBlender.js"></script>
+		<script src="js/events.js"></script>
+ 
+		<script src="js/initCannon.js"></script>
+		
+		<script src="js/handler_help.js"></script>
+		
+		<script src="js/lights.js"></script>
+		
+
+		
+        <script>
+
+
+        
+		  
+          initLoadScene();
+		
+			
+            animate();
+
+     
+
+   
+
+
+            function onStartClick() {
+				//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				
+                $( "progress" ).style.display = "none";
+
+                blocker.style.display = '-webkit-box';
+                blocker.style.display = '-moz-box';
+                blocker.style.display = 'box';
+
+                instructions.style.display = '';
+                camera = new THREE.PerspectiveCamera( 65, window.innerWidth / window.innerHeight, 0.1, 1000 );
+				camera.position.y = 7;
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+
+                scene = loaded.scene;
+
+				
+				
+				
+                // scene = new THREE.Scene();
+                scene.fog = new THREE.Fog( 0x222233, 0, 500 );
+
+                controls = new PointerLockControls( camera , sphereBody );
+                scene.add( controls.getObject() );
+
+
+                geometry = new THREE.PlaneGeometry( 300, 300, 50, 50 );
+                geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
+
+                material = new THREE.MeshLambertMaterial( { color: 0x4444dd, wireframe: false } );
+                
+                THREE.ColorUtils.adjustHSV( material.color, 0, 0, 0.9 );
+                mesh = new THREE.Mesh( geometry, material );
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                scene.add( mesh );
+				
+				//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                /*text 
+                */
+				//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				  var group, text;
+		  
+		  var theText = "low poly house project";
+						var text3d = new THREE.TextGeometry( theText, {
+
+					size: 2,
+					height: 1.5,
+					curveSegments: 2,
+					font: "helvetiker"
+
+				});
+
+				text3d.computeBoundingBox();
+					var centerOffset = -0.5 * ( text3d.boundingBox.max.x - text3d.boundingBox.min.x );
+
+				var textMaterial = new THREE.MeshBasicMaterial( { color: 0xa1fa62, overdraw: 0.5 } );
+				text = new THREE.Mesh( text3d, textMaterial );
+
+				text.position.x = centerOffset;
+				text.position.x = -24;
+				text.position.y = 34;
+				text.position.z = 30;//1,25,30
+
+				text.rotation.x = 0;
+				text.rotation.y = -90;
+
+				group = new THREE.Object3D();
+				group.add( text );
+                 
+				scene.add( group );
+				
+				console.log(scene.__objects.length);
+				//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                
+               
+/*
+			   light = new THREE.SpotLight( 0xffeeee );
+                light.position.set( 0, 3, 0 );
+                light.target.position.set( 0, 0, 0 );
+                light.castShadow = true;
+
+                light.shadowCameraNear = 20;
+                light.shadowCameraFar = 50;//camera.far;
+                light.shadowCameraFov = 40;
+
+                light.shadowMapBias = 0.1;
+                light.shadowMapDarkness = 0.7;
+                light.shadowMapWidth = 2*512;
+                light.shadowMapHeight = 2*512;
+                scene.add( light );
+                
+				
+	*/
+	
+	
+	/////////////////
+	// plafionjera 
+ 
+	P_LIGHT(0xffffff , -4,15,1 , 1 , 20);
+	P_LIGHT(0xffffff , -10,15,1 , 1 , 20);
+	P_LIGHT(0xffffff , 0,15,1 , 1 , 20);
+	
+	
+	
+	P_LIGHT(0xffffff , -4,15,11 , 1 , 20);
+	P_LIGHT(0xffffff , -10,15,11 , 1 , 20);
+	P_LIGHT(0xffffff , 0,15,11 , 1 , 20);
+	
+	//naponje
+	//basen
+	P_LIGHT(0xffffff , -30,4,-5 , 5 , 10);
+	P_LIGHT(0xffffff , -30,4,0 , 5 , 10);
+	P_LIGHT(0xffffff , -30,4,5 , 5 , 10);
+	P_LIGHT(0xffffff , -30,4,10 , 5 , 10);
+	P_LIGHT(0xffffff , -30,4,15 , 5 , 10);
+	
+	P_LIGHT(0xffffff , -34,4,-5 , 5 , 10);
+	P_LIGHT(0xffffff , -34,4,0 , 5 , 10);
+	P_LIGHT(0xffffff , -34,4,5 , 5 , 10);
+	P_LIGHT(0xffffff , -34,4,10 , 5 , 10);
+	P_LIGHT(0xffffff , -34,4,15 , 5 , 10);
+	
+	P_LIGHT(0xffffff , -30,65,21 , 20 , 60);
+	P_LIGHT(0xffffff ,  30,75,21 , 20 , 60);
+	
+	
+	
+	///////////////////////////////////////////
+	
+	//kuhinja pod
+	P_LIGHT(0xffffff , 8,3,40 , 4 , 20);
+	
+	///////////////////////////////////////////
+	
+	
+	///////////////////////////////////////////
+	//lampe
+	P_LIGHT(0xffffff , -4,10,0 , 1 , 50);
+	
+	P_LIGHT(0xffffff , 8,10,0 , 1 , 50);
+	
+	
+	
+	//pod glavni
+	//P_LIGHT(0xffffff , -4,2,0 , 1 , 50);
+	
+	
+	
+	//////////////////////////////////////////
+	//////////////////////////////////////////
+	//kuhinja
+	
+	P_LIGHT(0xffffff , 1,25,30 , 3 , 30);
+	P_LIGHT(0xffffff , 1,25,40 , 3 , 30);
+	P_LIGHT(0xffffff , 1,25,50 , 3 , 30);
+	
+	
+	P_LIGHT(0xffffff , 10,25,30 , 2 , 10);
+	P_LIGHT(0xffffff , 10,25,40 , 2 , 10);
+	P_LIGHT(0xffffff , 10,25,50 , 2 , 10);
+	
+	//////////////////////////////////////////
+	//////////////////////////////////////////
+	         
+    var ambient = new THREE.AmbientLight( 0xffffff, 2.25 );
+                 scene.add( ambient );
+
+
+                // Add boxes
+                material = new THREE.MeshLambertMaterial( { color: 0xff2222, wireframe: false } );
+                var halfExtents = new CANNON.Vec3(1,1,1);
+                var boxShape = new CANNON.Box(halfExtents);
+                var boxGeometry = new THREE.CubeGeometry(halfExtents.x*2,halfExtents.y*2,halfExtents.z*2);
+                for(var i=0; i < 12; i++){
+                   // var x = (Math.random()-0.5)*20;
+                    //var y = (Math.random())*80;
+                    //var z = (Math.random()-0.5)*20;
+					var x = 0;
+                    var y = 21* x;
+                    var z = 0;
+                    var boxBody = new CANNON.RigidBody(1,boxShape);
+                    var boxMesh = new THREE.Mesh( boxGeometry, material );
+                    world.add(boxBody);
+                    scene.add(boxMesh);
+                    boxBody.position.set(x,y,z);
+                    boxMesh.position.set(x,y,z);
+                    boxMesh.castShadow = true;
+                    boxMesh.receiveShadow = true;
+                    boxMesh.useQuaternion = true;
+                    boxes.push(boxBody);
+                    boxMeshes.push(boxMesh);
+                }
+
+//antialias: true
+                renderer.shadowMapEnabled = true;
+                renderer.shadowMapSoft = true;
+                renderer.setClearColor( loaded.bgColor, loaded.bgAlpha );
+				
+				renderer.shadowMapType = THREE.PCFSoftShadowMap; 
+				
+                 initBlenderScene();
+
+                currentScene = 1;
+
+              
+
+            }
+			
+
+
+            function animate() {
+
+                requestAnimationFrame( animate );
+                if (currentScene == 0){
+                    renderLoadScene();
+                    stats.update();
+                }
+
+                if (currentScene == 1){
+                    if(controls.enabled){
+                        world.step(dt);
+                    }
+
+                    controls.update( Date.now() - time );
+                    renderer.render( scene, camera );
+                    time = Date.now();
+                                        // Update box positions
+                                       
+                    for(var i=0; i<boxes.length; i++){
+                        boxes[i].position.copy(boxMeshes[i].position);
+                        boxes[i].quaternion.copy(boxMeshes[i].quaternion);
+                    }
+					
+					//text.rotation.y++;
+					//if (text.rotation.y > 359) {text.rotation.y = 0;}
+					// scene.__objects[9].rotation.y=scene.__objects[4].rotation.y + 0.001;
+					
+				//scene.children[208].rotation.x -= 0.01 ;
+				scene.children[208].rotation.y -= 0.01 ;
+				
+				
+/*                  
+ 
+                    for(var i=0; i<blenderBoxes.length; i++){
+                        blenderBoxes[i].position.copy(blenderBoxMeshes[i].position);
+                        blenderBoxes[i].quaternion.copy(blenderBoxMeshes[i].quaternion);
+                    }
+  */              
+                    
+
+                }
+
+                stats.update();
+            }
+
+
+            function renderBlenderScene() {
+
+                renderer.render( scene, camera );
+
+            }
+
+
+            function renderLoadScene() {
+
+                camera.position.x += ( mouseX - camera.position.x ) * .001;
+                camera.position.y += ( - mouseY - camera.position.y ) * .001;
+
+                camera.lookAt( scene.position );
+
+                renderer.render( scene, camera );
+
+            }
+
+            // Scene explorer user interface
+
+            function toggle( id ) {
+
+                var scn = $( "section_" + id ).style,
+                    btn = $( "plus_" + id );
+
+                if ( scn.display == "block" ) {
+
+                    scn.display = "none";
+                    btn.innerHTML = "[+]";
+
+                }
+                else {
+
+                    scn.display = "block";
+                    btn.innerHTML = "[-]";
+
+                }
+
+            }
+
+            function createToggle( label ) { return function() { toggle( label ) } };
+
+            function refreshSceneView( result ) {
+
+                $( "section_exp" ).innerHTML = generateSceneView( result );
+
+                var config = [ "obj", "geo", "mat", "tex", "lit", "cam" ];
+
+                for ( var i = 0; i < config.length; i++ )
+                    $( "plus_" + config[i] ).addEventListener( 'click', createToggle( config[i] ), false );
+
+            }
+
+            function generateSection( label, id, objects ) {
+
+                var html = "";
+
+                html += "<h3><a id='plus_" + id + "' href='#'>[+]</a> " + label + "</h3>";
+                html += "<div id='section_" + id + "' class='part'>";
+
+                for( var o in objects ) {
+
+                    html += o + "<br/>";
+
+                }
+                html += "</div>";
+
+                return html;
+
+            }
+
+            function generateSceneView( result ) {
+
+                var config = [
+                [ "Objects",    "obj", result.objects ],
+                [ "Geometries", "geo", result.geometries ],
+                [ "Materials",  "mat", result.materials ],
+                [ "Textures",   "tex", result.textures ],
+                [ "Lights",     "lit", result.lights ],
+                [ "Cameras",    "cam", result.cameras ]
+                ];
+
+                var html = "";
+
+                for ( var i = 0; i < config.length; i++ )
+                    html += generateSection( config[i][0], config[i][1], config[i][2] );
+
+                return html;
+
+            }
+
+        </script>
+
+    </body>
+</html>
